@@ -5,7 +5,12 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 require("dotenv").config();
+
+//Exporting Routes
+const userRoutes = require("./routes/user");
 const authRoutes = require("./routes/auth");
+const categoryRoutes = require("./routes/category");
+const productRoutes = require("./routes/product");
 
 //DB Connection
 mongoose
@@ -23,8 +28,11 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(cors());
 
-//My Routes
+//Using Routes
 app.use("/api", authRoutes);
+app.use("/api", userRoutes);
+app.use("/api", categoryRoutes);
+app.use("/api", productRoutes);
 
 //PORT
 const port = process.env.PORT || 5000;
