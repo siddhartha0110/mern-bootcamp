@@ -1,24 +1,28 @@
 var express = require("express");
 var router = express.Router();
-const { check } = require("express-validator")
+const { check, validationResult } = require("express-validator");
 const { signout, signup, signin, isSignedIn } = require("../controllers/auth");
 
-//SignUp Route
-router.post("/signup", [
-    check("name").isLength({ min: 3 }).withMessage('Must Be atleast 3 characters long '),
-    check("email").isEmail().withMessage("Email is Required"),
-    check("password").isLength({ min: 5 }).withMessage('Must be atleast 5 characters long')
-        .matches(/\d/).withMessage('must contain a digit')
-], signup);
+router.post(
+  "/signup",
+  [
+    check("name", "name should be at least 3 char").isLength({ min: 3 }),
+    check("email", "email is required").isEmail(),
+    check("password", "password should be at least 5 characters long").isLength({ min: 5 })
+      .matches(/\d/).withMessage("Must Contain digit")
+  ],
+  signup
+);
 
-//Login Route
-router.post("/signin", [
-    check("email").isEmail().withMessage("Email is Required"),
-    check("password").isLength({ min: 5 }).withMessage("Password cannot be empty")
-], signin);
+router.post(
+  "/signin",
+  [
+    check("email", "email is required").isEmail(),
+    check("password", "password field is required").isLength({ min: 5 })
+  ],
+  signin
+);
 
-//Logout Route
 router.get("/signout", signout);
-
 
 module.exports = router;

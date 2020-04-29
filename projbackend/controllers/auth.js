@@ -1,17 +1,15 @@
 const User = require("../models/user");
-const jwt = require("jsonwebtoken");
-const expressJWT = require("express-jwt");
-const { validationResult } = require("express-validator");
+const { check, validationResult } = require("express-validator");
+var jwt = require("jsonwebtoken");
+var expressJwt = require("express-jwt");
 
-//SignUp Controller
 exports.signup = (req, res) => {
+  const errors = validationResult(req);
 
-  const errors = validationResult(req)
   if (!errors.isEmpty()) {
     return res.status(422).json({
-      error: errors.array()[0].msg,
-      param: errors.array()[0].param
-    })
+      error: errors.array()[0].msg
+    });
   }
 
   const user = new User(req.body);
@@ -29,64 +27,69 @@ exports.signup = (req, res) => {
   });
 };
 
-//SignIn Controller
 exports.signin = (req, res) => {
+  const errors = validationResult(req);
   const { email, password } = req.body;
 
-  const errors = validationResult(req)
   if (!errors.isEmpty()) {
     return res.status(422).json({
-      error: errors.array()[0].msg,
-      param: errors.array()[0].param
-    })
+      error: errors.array()[0].msg
+    });
   }
 
   User.findOne({ email }, (err, user) => {
     if (err || !user) {
-      return res.status(400).json({ err: "User does not Exist" })
+      return res.status(400).json({
+        error: "USER email does not exists"
+      });
     }
 
-    //After Email Exists
-    if (!user.authenticate(password)) {
-      return res.status(401).json({ err: "Incorrect Password" })
+    if (!user.autheticate(password)) {
+      return res.status(401).json({
+        error: "Email and password do not match"
+      });
     }
-    //After password matches
-    const token = jwt.sign({ _id: user._id }, process.env.SECRET) //Create Token
-    res.cookie("token", token, { expire: new Date() + 9999 }) //Put token in cookie
 
-    //Response to Front-End
+    //create token
+    const token = jwt.sign({ _id: user._id }, process.env.SECRET);
+    //put token in cookie
+    res.cookie("token", token, { expire: new Date() + 9999 });
+
+    //send response to front end
     const { _id, name, email, role } = user;
     return res.json({ token, user: { _id, name, email, role } });
-  })
-}
-
-
-//SignOut Controller
-exports.signout = (req, res) => {
-  res.clearCookie();
-  res.json({
-    message: "User signout"
   });
 };
 
-//Protected Routes
-exports.isSignedIn = expressJWT({
+exports.signout = (req, res) => {
+  res.clearCookie("token");
+  res.json({
+    message: "User signout successfully"
+  });
+};
+
+//protected routes
+exports.isSignedIn = expressJwt({
   secret: process.env.SECRET,
   userProperty: "auth"
-})
+});
 
-//Custom Middlewares
+//custom middlewares
 exports.isAuthenticated = (req, res, next) => {
-  let checkAuth = req.profile && req.auth && (req.profile._id == req.auth._id)
-  if (!checkAuth) {
-    return res.status(403).json({ err: "Access Denied" });
+  let checker = req.profile && req.auth && req.profile._id == req.auth._id;
+  if (!checker) {
+    return res.status(403).json({
+      error: "ACCESS DENIED"
+    });
   }
   next();
-}
+};
 
 exports.isAdmin = (req, res, next) => {
   if (req.profile.role === 0) {
-    return res.status(403).json({ err: "Only Admin Access Allowed" });
+    return res.status(403).json({
+      error: "You are not ADMIN, Access denied"
+    });
   }
   next();
-}
+};

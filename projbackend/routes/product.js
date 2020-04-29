@@ -1,33 +1,58 @@
 const express = require("express");
 const router = express.Router();
 
-const { isAdmin, isAuthenticated, isSignedIn } = require("../controllers/auth");
+const {
+  getProductById,
+  createProduct,
+  getProduct,
+  photo,
+  updateProduct,
+  deleteProduct,
+  getAllProducts,
+  getAllUniqueCategories
+} = require("../controllers/product");
+const { isSignedIn, isAuthenticated, isAdmin } = require("../controllers/auth");
 const { getUserById } = require("../controllers/user");
-const { getProductById, createProduct, getProduct, photo, deleteProduct, updateProduct, getAllProducts, getAllCategories } = require("../controllers/product");
 
-//Params Extraction
+//all of params
 router.param("userId", getUserById);
 router.param("productId", getProductById);
 
-//All Routes
-router.post("/product/create/:userId", isSignedIn, isAuthenticated, isAdmin, createProduct);
-/*As soon as the userID param is noticed by the post route
-It fires router.param for userId and gets the id
-Then the middleware is run on it
-*/
+//all of actual routes
+//create route
+router.post(
+  "/product/create/:userId",
+  isSignedIn,
+  isAuthenticated,
+  isAdmin,
+  createProduct
+);
 
-//Grab A Product
+// read routes
 router.get("/product/:productId", getProduct);
 router.get("/product/photo/:productId", photo);
 
-//Delete Product
-router.delete("/product/:productId/:userId", isSignedIn, isAuthenticated, isAdmin, deleteProduct);
-//Update Product
-router.put("/product/:productId/:userId", isSignedIn, isAuthenticated, isAdmin, updateProduct);
+//delete route
+router.delete(
+  "/product/:productId/:userId",
+  isSignedIn,
+  isAuthenticated,
+  isAdmin,
+  deleteProduct
+);
 
-//Listing Product
+//update route
+router.put(
+  "/product/:productId/:userId",
+  isSignedIn,
+  isAuthenticated,
+  isAdmin,
+  updateProduct
+);
+
+//listing route
 router.get("/products", getAllProducts);
 
-router.get("/products/categories", getAllCategories);
+router.get("/products/categories", getAllUniqueCategories);
 
 module.exports = router;
